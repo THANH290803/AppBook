@@ -87,7 +87,20 @@ class MemberController extends Controller
      */
     public function update(UpdateMemberRequest $request, Member $member)
     {
-        $member->update($request->all());
+        $data = $request->all();
+
+        // Kiểm tra sự tồn tại của thành viên dựa trên các yếu tố không trùng lặp, ví dụ: email hoặc số điện thoại
+        $existingMember = Member::where('email', $data['email'])->where('id', '!=', $member->id)->first();
+
+        // Nếu thành viên đã tồn tại, trả về thông báo lỗi
+        if ($existingMember) {
+            return response()->json(['message' => 'Email này đã tồn tại.'], 409);
+        }
+
+        // Nếu không tồn tại, cập nhật dữ liệu cho thành viên
+        $member->update($data);
+
+        // Trả về phản hồi JSON với mã trạng thái 200
         return response()->json($member, 200);
     }
 
@@ -102,4 +115,6 @@ class MemberController extends Controller
         $member->delete();
         return response()->json(null, 204);
     }
+
+
 }
