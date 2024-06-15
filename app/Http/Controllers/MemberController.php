@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreMemberRequest;
 use App\Http\Requests\UpdateMemberRequest;
 use App\Models\Member;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class MemberController extends Controller
 {
@@ -117,4 +119,9 @@ class MemberController extends Controller
     }
 
 
+    public function login(Request $request)
+    {
+        $credentials = $request->only(['email', 'password']);
+
+    }
 }

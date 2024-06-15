@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
+use App\Models\Category;
 
 class BookController extends Controller
 {
@@ -15,8 +16,7 @@ class BookController extends Controller
      */
     public function index()
     {
-        $books = Book::with('category', 'publisher')->get();
-        return response()->json($books);
+        return Book::orderBy('id', 'desc')->get();
     }
 
     /**
@@ -52,7 +52,8 @@ class BookController extends Controller
      */
     public function show(Book $book)
     {
-        //
+        $book->load('publisher', 'category');
+        return response()->json($book, 200);
     }
 
     /**
@@ -89,5 +90,11 @@ class BookController extends Controller
     {
         $book->delete();
         return response()->json(null, 204);
+    }
+
+    public function BookByCategory(Category $category)
+    {
+        $books = $category->books()->get();
+        return response()->json($books, 200);
     }
 }

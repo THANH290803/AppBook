@@ -66,7 +66,7 @@ class PublisherController extends Controller
      */
     public function show(Publisher $publisher)
     {
-        //
+
     }
 
     /**

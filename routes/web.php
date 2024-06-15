@@ -47,6 +47,7 @@ Route::prefix('api')->group(function () {
    Route::prefix('book')->group(function () {
        Route::get('/', [BookController::class, 'index']); // http://127.0.0.1:8000/api/book
        Route::post('/add', [BookController::class, 'store']); // http://127.0.0.1:8000/api/book/add
+       Route::get('show/{book}', [BookController::class, 'show']); // http://127.0.0.1:8000/api/book/show/7
        Route::get('edit/{book}', [BookController::class, 'edit']); // http://127.0.0.1:8000/api/book/edit/6
        Route::put('update/{book}', [BookController::class, 'update']); // http://127.0.0.1:8000/api/book/update/6
        Route::delete('delete/{book}', [BookController::class, 'destroy']); // http://127.0.0.1:8000/api/book/delete/6
@@ -59,5 +60,7 @@ Route::prefix('api')->group(function () {
       Route::put('update/{category}', [CategoryController::class, 'update']); // http://127.0.0.1:8000/api/category/edit/1
       Route::delete('delete/{category}', [CategoryController::class, 'destroy']); // http://127.0.0.1:8000/api/category/delete/2
    });
+
+    Route::get('/BookByCategory/{category}', [BookController::class, 'BookByCategory']); // http://127.0.0.1:8000/api/BookByCategory/{category}
 
 });
