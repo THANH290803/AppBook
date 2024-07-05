@@ -3,6 +3,8 @@
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderDetailController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\PublisherController;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +35,7 @@ Route::prefix('api')->group(function () {
        Route::get('edit/{paymentMethod}', [PaymentMethodController::class, 'edit']); // http://127.0.0.1:8000/api/paymentMethod/edit/2
        Route::put('update/{paymentMethod}', [PaymentMethodController::class, 'update']); // http://127.0.0.1:8000/api/paymentMethod/update/1
        Route::delete('delete/{paymentMethod}', [PaymentMethodController::class, 'destroy']); // http://127.0.0.1:8000/api/paymentMethod/delete/2
+       Route::post('/vnpay/{price}', [\App\Http\Controllers\PaymentMethodController::class, 'vnPay']); // http://127.0.0.1:8000/api/paymentMethod/vnpay/{price}
    });
 
    Route::prefix('member')->group(function () {
@@ -61,6 +64,28 @@ Route::prefix('api')->group(function () {
       Route::delete('delete/{category}', [CategoryController::class, 'destroy']); // http://127.0.0.1:8000/api/category/delete/2
    });
 
-    Route::get('/BookByCategory/{category}', [BookController::class, 'BookByCategory']); // http://127.0.0.1:8000/api/BookByCategory/{category}
+   Route::prefix('order')->group(function () {
+       Route::get('/{status}', [OrderController::class, 'index']); // http://127.0.0.1:8000/api/order/{status}
+       Route::post('/add', [OrderController::class, 'store']); // http://127.0.0.1:8000/api/order/add
+       Route::put('/update/{order}/approve', [OrderController::class, 'Approve']); // http://127.0.0.1:8000/api/order/update/{order}/approve
+       Route::put('/update/{order}', [OrderController::class, 'update']); // http://127.0.0.1:8000/api/order/update/{order}
+   });
 
+    Route::prefix('order_detail')->group(function () {
+        Route::post('/add', [OrderDetailController::class, 'store']); // http://127.0.0.1:8000/api/order_detail/add
+    });
+
+   Route::post('/register', [MemberController::class, 'register']);
+   Route::post('/login', [MemberController::class, 'login']);
+
+    Route::get('/BookByCategory/{category}', [BookController::class, 'BookByCategory']); // http://127.0.0.1:8000/api/BookByCategory/{category}
+    Route::post('/cart', [\App\Http\Controllers\CartItemController::class, 'store']); // http://127.0.0.1:8000/api/cart
+    Route::get('/showCart/{member_id}', [\App\Http\Controllers\CartItemController::class, 'show']); // http://127.0.0.1:8000/api/showCart/{member_id}
+    Route::put('/updateCart/{cartItem}', [\App\Http\Controllers\CartItemController::class, 'update']); // http://127.0.0.1:8000/api/updateCart/{cartItem}
+    Route::delete('/deleteCart/{cartItem}', [\App\Http\Controllers\CartItemController::class, 'destroy']); // http://127.0.0.1:8000/api/deleteCart/{cartItem}
 });
+
+Route::get('/success-order', function () {
+    return view('success');
+});
+

@@ -11,4 +11,9 @@ class PaymentMethod extends Model
     protected $table = 'payment_methods';
     protected $fillable = ['name'];
     public $timestamps = false;
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'payment_method_id');
+    }
 }

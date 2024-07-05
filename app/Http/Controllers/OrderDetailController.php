@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreOrderDetailRequest;
 use App\Http\Requests\UpdateOrderDetailRequest;
 use App\Models\OrderDetail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class OrderDetailController extends Controller
 {
@@ -36,7 +38,27 @@ class OrderDetailController extends Controller
      */
     public function store(StoreOrderDetailRequest $request)
     {
-        //
+        // Lấy toàn bộ dữ liệu từ yêu cầu
+        $orderDetailsData = $request->all();
+
+        // Ghi nhật ký để kiểm tra dữ liệu đầu vào
+        Log::info('Request Data:', $orderDetailsData);
+
+        // Lặp qua từng phần tử trong mảng và tạo từng OrderDetail
+        $orderDetails = [];
+        foreach ($orderDetailsData as $orderDetailData) {
+            $validatedData = Validator::make($orderDetailData, [
+                'book_id' => 'required|integer',
+                'order_id' => 'required|integer',
+                'quantity' => 'required|integer',
+                'unit_price' => 'required|integer',
+            ])->validate();
+
+            $orderDetails[] = OrderDetail::create($validatedData);
+        }
+
+        // Trả về phản hồi thành công với toàn bộ OrderDetails đã tạo
+        return response()->json($orderDetails, 201);
     }
 
     /**

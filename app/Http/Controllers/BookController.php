@@ -6,6 +6,8 @@ use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Category;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class BookController extends Controller
 {
@@ -37,11 +39,42 @@ class BookController extends Controller
      */
     public function store(StoreBookRequest $request)
     {
-        $data = Book::create(array_merge(
-            $request->all(),
-            ['created_at' => now()]
-        ));
-        return response()->json($data, 201);
+        $request->validate([
+            'img' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Example validation for image file
+            // Add other validations for your fields
+        ]);
+
+        $imageUrl = null;
+
+        if ($request->hasFile('img')) {
+            $file = $request->file('img');
+            $fileName = time() . '_' . $file->getClientOriginalName(); // Generate unique file name
+
+            // Move uploaded file to public/books folder
+            $file->move(public_path('books'), $fileName);
+
+            // Get URL of the stored image
+            $imageUrl = asset('books/' . $fileName);
+
+            // Create new book record
+            $book = Book::create([
+                'isbn' => $request->isbn,
+                'name' => $request->name,
+                'amount' => $request->amount,
+                'price' => $request->price,
+                'author' => $request->author,
+                'img' => $imageUrl, // Save image URL in database
+                'description' => $request->description,
+                'publish_year' => $request->publish_year,
+                'category_id' => $request->category_id,
+                'publisher_id' => $request->publisher_id,
+                'created_at' => now(),
+            ]);
+
+            return response()->json($book, 201);
+        }
+
+        return response()->json(['error' => 'File not found or upload failed.'], 422);
     }
 
     /**
@@ -76,8 +109,27 @@ class BookController extends Controller
      */
     public function update(UpdateBookRequest $request, Book $book)
     {
-        $book->update($request->all());
-        return response()->json($book, 200);
+        $book->isbn = $request->isbn;
+        $book->name = $request->name;
+        $book->amount = $request->amount;
+        $book->price = $request->price;
+        $book->author = $request->author;
+        $book->description = $request->description;
+        $book->publish_year = $request->publish_year;
+        $book->category_id = $request->category_id;
+        $book->publisher_id = $request->publisher_id;
+
+        if ($request->hasFile('img')) {
+            $image = $request->file('img');
+            $imageName = $image->getClientOriginalName();
+            $image->storeAs('public/books', $imageName);
+            $book->img = 'storage/books/' . $imageName;
+        }
+
+        // Lưu thông tin sách vào database
+        $book->save();
+
+        return response()->json(['message' => 'Cập nhật thông tin sách thành công'], 200);
     }
 
     /**
