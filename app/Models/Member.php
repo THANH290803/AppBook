@@ -14,7 +14,7 @@ class Member extends Model implements Authenticatable
     use \Illuminate\Auth\Authenticatable;
     public $timestamps = false;
     protected $fillable = ['username', 'phone_number', 'address', 'email','password', 'role'];
-    protected $table = 'members';
+    protected $table = 'users';
 
     protected $hidden = [
         'password', 'remember_token',

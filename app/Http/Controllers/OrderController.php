@@ -42,9 +42,9 @@ class OrderController extends Controller
                 'approvers.username as approver_name'
             )
             ->leftJoin('payment_methods', 'orders.payment_method_id', '=', 'payment_methods.id')
-            ->leftJoin('members as customers', 'orders.customer_id', '=', 'customers.id')
-            ->leftJoin('members as editors', 'orders.editor_id', '=', 'editors.id')
-            ->leftJoin('members as approvers', 'orders.approve_id', '=', 'approvers.id')
+            ->leftJoin('users as customers', 'orders.customer_id', '=', 'customers.id')
+            ->leftJoin('users as editors', 'orders.editor_id', '=', 'editors.id')
+            ->leftJoin('users as approvers', 'orders.approve_id', '=', 'approvers.id')
             ->where('orders.status', $status)
             ->get();
 
@@ -99,6 +99,7 @@ class OrderController extends Controller
 
         // Validate incoming request data
         $validatedData = $request->validate([
+            'status' => 'required|integer',
             'name_customer' => 'nullable|string|max:255',
             'phone_customer' => 'nullable|string|max:255',
             'address_customer' => 'nullable|string|max:255',
@@ -114,7 +115,13 @@ class OrderController extends Controller
 
         $validatedData['code_order'] = $this->generateBalancedRandomCode();
 
-        $validatedData['status'] = 1;
+//        $validatedData['status'] = 1;
+
+        // Retrieve vnpTransactionNo from session
+        $vnpTransactionNo = $request->session()->get('vnpTransactionNo');
+
+        // Add vnpTransactionNo to validated data
+        $validatedData['transaction_code'] = $vnpTransactionNo;
 
         // Create the order using validated data
         $order = Order::create($validatedData);
@@ -175,7 +182,7 @@ class OrderController extends Controller
 
     public function Approve(Order $order, Request $request){
         // Check if the status is within the range of 1 to 5
-        if ($order->status >= 1 && $order->status < 6) {
+        if ($order->status >= 1 && $order->status < 5) {
             // Increment the status by 1
             $order->status += 1;
             $order->approve_id = $request->input('approve_id');
@@ -188,4 +195,69 @@ class OrderController extends Controller
             return response()->json(['message' => 'Trạng thái đơn hàng không hợp lệ'], 400);
         }
     }
+
+    // Customer
+    public function OrderCustomer($customerId)
+    {
+        $orders = DB::table('orders')
+            ->select(
+                'orders.id',
+                'orders.code_order',
+                'orders.status',
+                'orders.transaction_code',
+                'orders.name_customer',
+                'orders.phone_customer',
+                'orders.address_customer',
+                'orders.note',
+                'orders.shipping_code',
+                'orders.customer_id',
+                'orders.payment_method_id',
+                'orders.editor_id',
+                'orders.approve_id',
+                'orders.created_at',
+                'orders.updated_at',
+                'payment_methods.name as payment_method_name',
+                'customers.username as customer_name',
+                'editors.username as editor_name',
+                'approvers.username as approver_name'
+            )
+            ->leftJoin('payment_methods', 'orders.payment_method_id', '=', 'payment_methods.id')
+            ->leftJoin('users as customers', 'orders.customer_id', '=', 'customers.id')
+            ->leftJoin('users as editors', 'orders.editor_id', '=', 'editors.id')
+            ->leftJoin('users as approvers', 'orders.approve_id', '=', 'approvers.id')
+            ->where('orders.customer_id', $customerId) // Filter orders by customer_id
+            ->get();
+
+        // Loop through orders and fetch details for each order
+        foreach ($orders as $order) {
+            $order->totalPrice = DB::table('order_details')
+                ->where('order_id', $order->id)
+                ->sum('unit_price');
+
+            $order->books = DB::table('order_details')
+                ->select('books.isbn', 'books.name as book_name', 'books.img', 'books.price','order_details.quantity', 'order_details.unit_price as unit_price_per_book')
+                ->leftJoin('books', 'order_details.book_id', '=', 'books.id')
+                ->where('order_id', $order->id)
+                ->get();
+        }
+
+        return response()->json(['orders' => $orders]);
+    }
+
+    // OrderController.php
+    public function Cancel(Order $order)
+    {
+        // Kiểm tra nếu trạng thái hiện tại của đơn hàng là 1
+        if ($order->status == 1) {
+            // Cập nhật trạng thái của đơn hàng thành 5
+            $order->update(['status' => 5]);
+
+            // Trả về phản hồi thành công nếu cập nhật thành công
+            return response()->json(['message' => 'Đã cập nhật trạng thái đơn hàng thành 5.'], 200);
+        } else {
+            // Trả về phản hồi lỗi nếu đơn hàng không ở trạng thái 1
+            return response()->json(['message' => 'Đơn hàng không đủ điều kiện để hủy.'], 400);
+        }
+    }
+
 }

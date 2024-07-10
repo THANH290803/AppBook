@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMemberRequest;
 use App\Http\Requests\UpdateMemberRequest;
+use App\Models\Cart;
 use App\Models\Member;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -70,7 +71,7 @@ class MemberController extends Controller
      */
     public function show(Member $member)
     {
-        //
+        return response()->json($member);
     }
 
     /**
@@ -131,7 +132,7 @@ class MemberController extends Controller
             'password' => 'required|string|min:6',
             'address' => 'required|string|max:255',
             'phone_number' => 'required|string|max:10', // Tùy chỉnh độ dài tối đa của số điện thoại
-            'email' => 'required|string|email|max:255|unique:members', // Đảm bảo email là duy nhất trong bảng users
+            'email' => 'required|string|email|max:255|unique:users', // Đảm bảo email là duy nhất trong bảng users
             'role' => 'required|int|max:10',
         ]);
 
@@ -150,13 +151,17 @@ class MemberController extends Controller
 
         $token = JWTAuth::fromuser($user);
 
+        Cart::create([
+            'user_id' => $user->id,
+        ]);
+
         return response()->json(compact('user', 'token'), 201);
     }
 
 
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        $credentials = $request->only(['email', 'password']);
 
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Invalid Credentials'], 401);
@@ -169,5 +174,11 @@ class MemberController extends Controller
             'user' => $user
         ]);
 
+    }
+
+    public function showProfile()
+    {
+        $user = Auth::user();
+        return response()->json(['user' => $user], 200);
     }
 }

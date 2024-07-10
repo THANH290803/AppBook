@@ -38,14 +38,14 @@ class CartItemController extends Controller
     public function store(StoreCartItemRequest $request)
     {
         $request->validate([
-            'member_id' => 'required|integer|exists:members,id',
+            'user_id' => 'required|integer|exists:users,id',
             'items' => 'required|array',
             'items.*.book_id' => 'required|integer|exists:books,id',
             'items.*.quantity' => 'required|integer|min:1',
         ]);
 
         // Find or create the cart
-        $cart = Cart::firstOrCreate(['member_id' => $request->member_id]);
+        $cart = Cart::firstOrCreate(['user_id' => $request->user_id]);
 
         // Create or update cart items
         foreach ($request->items as $item) {
@@ -74,7 +74,7 @@ class CartItemController extends Controller
      */
     public function show($member_id)
     {
-        $cart = Cart::with('items.book')->where('member_id', $member_id)->first();
+        $cart = Cart::with('items.book')->where('user_id', $member_id)->first();
 
         if (!$cart) {
             return response()->json([
@@ -83,9 +83,11 @@ class CartItemController extends Controller
             ], 404);
         }
 
+        $totalQuantity = $cart->items->sum('quantity');
         return response()->json([
             'success' => true,
             'cart' => $cart,
+            'totalQuantity' => $totalQuantity,
             'items' => $cart->items,
         ], 200);
     }
@@ -135,5 +137,20 @@ class CartItemController extends Controller
     {
         $cartItem->delete();
         return response()->json(null, 204);
+    }
+
+    public function getTotalProducts($member_id)
+    {
+        // Find the cart ID based on member_id
+        $cart = Cart::where('user_id', $member_id)->first();
+
+        if (!$cart) {
+            return response()->json(['error' => 'Cart not found'], 404);
+        }
+
+        // Calculate total products in cart_items
+        $totalProducts = CartItem::where('cart_id', $cart->id)->sum('quantity');
+
+        return response()->json(['total_products' => $totalProducts]);
     }
 }

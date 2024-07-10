@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePaymentMethodRequest;
 use App\Http\Requests\UpdatePaymentMethodRequest;
+use App\Models\CartItem;
+use App\Models\Order;
+use App\Models\OrderDetail;
 use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 
@@ -174,12 +177,15 @@ class PaymentMethodController extends Controller
             $vnpSecureHash =   hash_hmac('sha512', $hashdata, $vnp_HashSecret);//
             $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
         }
+
+        // Lưu vnp_TxnRef vào session để sử dụng sau này
+        $request->session()->put('vnpTransactionNo', $vnp_TxnRef);
+
         $returnData = array('code' => '00'
         , 'message' => 'success'
-        , 'url' => $vnp_Url);
+        , 'url' => $vnp_Url
+        , 'vnpTransactionNo' => $vnp_TxnRef);
 
         return response()->json($returnData);
-
-        // vui lòng tham khảo thêm tại code demo
     }
 }

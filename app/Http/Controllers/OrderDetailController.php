@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOrderDetailRequest;
 use App\Http\Requests\UpdateOrderDetailRequest;
+use App\Models\Book;
 use App\Models\OrderDetail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -54,7 +55,16 @@ class OrderDetailController extends Controller
                 'unit_price' => 'required|integer',
             ])->validate();
 
-            $orderDetails[] = OrderDetail::create($validatedData);
+            // Tạo OrderDetail
+            $orderDetail = OrderDetail::create($validatedData);
+            $orderDetails[] = $orderDetail;
+
+            // Lấy Book tương ứng và cập nhật amount
+            $book = Book::find($validatedData['book_id']);
+            if ($book) {
+                $book->amount -= $validatedData['quantity'];
+                $book->save();
+            }
         }
 
         // Trả về phản hồi thành công với toàn bộ OrderDetails đã tạo

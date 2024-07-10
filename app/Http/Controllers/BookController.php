@@ -6,6 +6,7 @@ use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Category;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -28,7 +29,27 @@ class BookController extends Controller
      */
     public function create()
     {
-        //
+        // Sản phẩm hot
+        $hotProducts = DB::table('order_details')
+            ->select('books.id', 'books.name', 'books.img', 'books.price', 'books.amount', DB::raw('COUNT(order_details.book_id) as purchase_count'))
+            ->join('orders', 'orders.id', '=', 'order_details.order_id')
+            ->join('books', 'books.id', '=', 'order_details.book_id')
+            ->groupBy('order_details.book_id', 'books.id', 'books.name', 'books.img', 'books.price', 'books.amount')
+            ->orderBy('purchase_count', 'desc')
+            ->take(8)
+            ->get();
+
+//        $hotProducts = DB::table('order_details')
+//            ->select('books.id', 'books.name', 'books.img', 'books.price', 'books.amount', DB::raw('COUNT(order_details.book_id) as purchase_count'))
+//            ->join('orders', 'orders.id', '=', 'order_details.order_id')
+//            ->join('books', 'books.id', '=', 'order_details.book_id')
+//            ->groupBy('order_details.book_id', 'books.id', 'books.name', 'books.img', 'books.price', 'books.amount')
+//            ->having(DB::raw('COUNT(order_details.book_id)'), '>=', 20)
+//            ->orderBy('purchase_count', 'desc')
+//            ->take(8)
+//            ->get();
+
+        return response()->json($hotProducts);
     }
 
     /**
