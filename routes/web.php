@@ -93,6 +93,7 @@ Route::prefix('api')->group(function () {
     Route::delete('/deleteCart/{cartItem}', [\App\Http\Controllers\CartItemController::class, 'destroy']); // http://127.0.0.1:8000/api/deleteCart/{cartItem}
     Route::get('/totalAmount/{member_id}', [\App\Http\Controllers\CartItemController::class, 'getTotalProducts']); // http://127.0.0.1:8000/api/totalAmount
     Route::get('/orderCustomer/{customerId}', [\App\Http\Controllers\OrderController::class, 'OrderCustomer']); // http://127.0.0.1:8000/api/orderCustomer
+    Route::post('/checkAvailability', [\App\Http\Controllers\IndexController::class, 'checkAvailability']); // http://127.0.0.1:8000/api/checkAvailability
 
 });
 

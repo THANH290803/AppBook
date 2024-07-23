@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCartItemRequest;
 use App\Http\Requests\UpdateCartItemRequest;
+use App\Models\Book;
 use App\Models\Cart;
 use App\Models\CartItem;
 
@@ -47,20 +48,36 @@ class CartItemController extends Controller
         // Find or create the cart
         $cart = Cart::firstOrCreate(['user_id' => $request->user_id]);
 
+        $itemsOutOfStock = [];
+
         // Create or update cart items
         foreach ($request->items as $item) {
-            $cartItem = CartItem::firstOrNew([
-                'cart_id' => $cart->id,
-                'book_id' => $item['book_id'],
-            ]);
+            $book = Book::find($item['book_id']);
 
-            $cartItem->quantity += $item['quantity'];
-            $cartItem->save();
+            if ($book->amount > 0) {
+                $cartItem = CartItem::firstOrNew([
+                    'cart_id' => $cart->id,
+                    'book_id' => $item['book_id'],
+                ]);
+
+                $cartItem->quantity += $item['quantity'];
+                $cartItem->save();
+            } else {
+                $itemsOutOfStock[] = $book;
+            }
+        }
+
+        if (count($itemsOutOfStock) > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Một số sản phẩm đã hết hàng.',
+                'out_of_stock_items' => $itemsOutOfStock,
+            ], 200);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Cart and items created successfully.',
+            'message' => 'Sản phẩm của bạn đã được thêm vào giỏ hàng thành công.',
             'cart' => $cart,
             'items' => $cart->items,
         ], 201);

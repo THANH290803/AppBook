@@ -151,9 +151,12 @@ class MemberController extends Controller
 
         $token = JWTAuth::fromuser($user);
 
-        Cart::create([
-            'user_id' => $user->id,
-        ]);
+        // Chỉ tạo giỏ hàng nếu vai trò không phải là 1 hoặc 2
+        if ($request->role != 1 && $request->role != 2) {
+            Cart::create([
+                'user_id' => $user->id,
+            ]);
+        }
 
         return response()->json(compact('user', 'token'), 201);
     }
