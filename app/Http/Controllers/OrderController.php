@@ -46,6 +46,7 @@ class OrderController extends Controller
             ->leftJoin('users as editors', 'orders.editor_id', '=', 'editors.id')
             ->leftJoin('users as approvers', 'orders.approve_id', '=', 'approvers.id')
             ->where('orders.status', $status)
+            ->orderBy('orders.created_at', 'asc')
             ->get();
 
         // Loop through orders and fetch details for each order
@@ -225,7 +226,8 @@ class OrderController extends Controller
             ->leftJoin('users as customers', 'orders.customer_id', '=', 'customers.id')
             ->leftJoin('users as editors', 'orders.editor_id', '=', 'editors.id')
             ->leftJoin('users as approvers', 'orders.approve_id', '=', 'approvers.id')
-            ->where('orders.customer_id', $customerId) // Filter orders by customer_id
+            ->where('orders.customer_id', $customerId)
+            ->orderBy('orders.created_at', 'desc') // Filter orders by customer_id
             ->get();
 
         // Loop through orders and fetch details for each order
@@ -248,7 +250,7 @@ class OrderController extends Controller
     public function Cancel(Order $order)
     {
         // Kiểm tra nếu trạng thái hiện tại của đơn hàng là 1
-        if ($order->status == 1) {
+        if ($order->status == 1 || $order->status == 2) {
             // Cập nhật trạng thái của đơn hàng thành 5
             $order->update(['status' => 5]);
 
