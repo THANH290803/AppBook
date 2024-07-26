@@ -19,7 +19,7 @@ class PaymentMethodController extends Controller
      */
     public function index()
     {
-        return PaymentMethod::all();
+        return PaymentMethod::orderBy('id', 'desc')->get();
     }
 
     /**

@@ -249,15 +249,28 @@ class OrderController extends Controller
     // OrderController.php
     public function Cancel(Order $order)
     {
-        // Kiểm tra nếu trạng thái hiện tại của đơn hàng là 1
+        // Kiểm tra nếu trạng thái hiện tại của đơn hàng là 1 hoặc 2
         if ($order->status == 1 || $order->status == 2) {
+            // Lấy chi tiết đơn hàng
+            $orderDetails = $order->orderDetails;
+
+            // Cập nhật số lượng của từng cuốn sách trong kho
+            foreach ($orderDetails as $detail) {
+                $book = $detail->book; // Sử dụng mối quan hệ để lấy sách
+                if ($book) {
+                    // Tăng số lượng sách theo số lượng đã đặt
+                    $book->amount += $detail->quantity;
+                    $book->save();
+                }
+            }
+
             // Cập nhật trạng thái của đơn hàng thành 5
             $order->update(['status' => 5]);
 
-            // Trả về phản hồi thành công nếu cập nhật thành công
-            return response()->json(['message' => 'Đã cập nhật trạng thái đơn hàng thành 5.'], 200);
+            // Trả về phản hồi thành công
+            return response()->json(['message' => 'Đã cập nhật trạng thái đơn hàng thành 5 và số lượng sách đã được khôi phục.'], 200);
         } else {
-            // Trả về phản hồi lỗi nếu đơn hàng không ở trạng thái 1
+            // Trả về phản hồi lỗi nếu đơn hàng không đủ điều kiện để hủy
             return response()->json(['message' => 'Đơn hàng không đủ điều kiện để hủy.'], 400);
         }
     }

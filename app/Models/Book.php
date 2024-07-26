@@ -21,4 +21,9 @@ class Book extends Model
     {
         return $this->belongsTo(Publisher::class);
     }
+
+    public function orderDetails()
+    {
+        return $this->hasMany(OrderDetail::class, 'book_id', 'id');
+    }
 }

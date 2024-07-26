@@ -22,7 +22,10 @@ class MemberController extends Controller
      */
     public function index()
     {
-        $members = User::whereIn('role', [1, 2])->get();
+        $members = User::whereIn('role', [1, 2])
+            ->orderByRaw('CASE WHEN role = 1 THEN 0 ELSE 1 END')
+            ->orderBy('id', 'desc')
+            ->get();
         return response()->json($members);
     }
 
@@ -33,7 +36,7 @@ class MemberController extends Controller
      */
     public function create()
     {
-        $members = User::where('role', 3)->get();
+        $members = User::where('role', 3)->orderBy('id', 'desc')->get();
 
         return response()->json($members);
     }

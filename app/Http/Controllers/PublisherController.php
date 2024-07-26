@@ -15,7 +15,7 @@ class PublisherController extends Controller
      */
     public function index()
     {
-        return Publisher::all();
+        return Publisher::orderBy('id', 'desc')->get();
     }
 
     /**

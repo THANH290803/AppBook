@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\IndexController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderDetailController;
@@ -83,6 +84,9 @@ Route::prefix('api')->group(function () {
 
    Route::post('/register', [MemberController::class, 'register']);
    Route::post('/login', [MemberController::class, 'login']);
+
+   // Thống kê
+    Route::get('/statistical', [IndexController::class, 'statistical']); // http://127.0.0.1:8000/api/statistical
 
    // Customer
 
