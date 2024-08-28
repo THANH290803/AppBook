@@ -29,13 +29,14 @@ class BookController extends Controller
      */
     public function create()
     {
+
         // Sản phẩm hot
         $hotProducts = DB::table('order_details')
             ->select('books.id', 'books.name', 'books.img', 'books.price', 'books.amount', DB::raw('COUNT(order_details.book_id) as purchase_count'))
             ->join('orders', 'orders.id', '=', 'order_details.order_id')
             ->join('books', 'books.id', '=', 'order_details.book_id')
             ->groupBy('order_details.book_id', 'books.id', 'books.name', 'books.img', 'books.price', 'books.amount')
-            ->orderBy('purchase_count', 'desc')
+            ->orderBy('orders.created_at', 'desc')
             ->take(8)
             ->get();
 
